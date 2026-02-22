@@ -1,144 +1,293 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Just One Question ❤️</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background: linear-gradient(135deg,#B8DB80,#F39EB6);
-    font-family:Segoe UI,sans-serif;
-    color:#333;
-    overflow:hidden;
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, sans-serif;
 }
 
-/* CARD */
-.card{
-    width:90%;
-    max-width:420px;
-    background:#F7F6D3;
-    padding:35px;
-    border-radius:20px;
-    text-align:center;
-    box-shadow:0 10px 40px rgba(0,0,0,.1);
+/* Background */
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+background:linear-gradient(-45deg,#ffdde1,#e6d7ff,#c8e7ff);
+background-size:400% 400%;
+animation:bgmove 18s infinite ease;
+padding:20px;
 }
+
+@keyframes bgmove{
+0%{background-position:0%}
+50%{background-position:100%}
+100%{background-position:0%}
+}
+
+/* Floating Hearts */
+
+.hearts{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+overflow:hidden;
+z-index:0;
+}
+
+.heart{
+position:absolute;
+bottom:-20px;
+color:rgba(255,0,100,.4);
+animation:floatUp linear infinite;
+}
+
+@keyframes floatUp{
+0%{transform:translateY(0) scale(1);opacity:0;}
+10%{opacity:1;}
+100%{transform:translateY(-110vh) scale(1.5);opacity:0;}
+}
+
+/* Card */
+
+.card{
+position:relative;
+z-index:2;
+width:100%;
+max-width:420px;
+padding:40px 30px;
+border-radius:24px;
+background:rgba(255,255,255,.85);
+backdrop-filter:blur(20px);
+box-shadow:0 20px 60px rgba(0,0,0,.15);
+text-align:center;
+}
+
+/* Screens */
+
+.screen{
+display:none;
+flex-direction:column;
+align-items:center;
+}
+
+h2{
+margin-bottom:15px;
+font-size:24px;
+}
+
+p{
+margin-bottom:20px;
+font-size:16px;
+color:#444;
+line-height:1.5;
+}
+
+/* Button group */
+
+.btn-group{
+display:flex;
+justify-content:center;
+gap:18px;
+margin-top:10px;
+flex-wrap:wrap;
+}
+
+/* Buttons */
 
 button{
-    padding:12px 22px;
-    border:none;
-    border-radius:30px;
-    margin:8px;
-    font-size:16px;
-    cursor:pointer;
+padding:12px 28px;
+border-radius:40px;
+border:none;
+cursor:pointer;
+font-weight:600;
+transition:.3s;
+font-size:15px;
 }
 
-#yes{
-    background:#F39EB6;
-    color:white;
-}
-
-#no{
-    background:#FFE4EF;
-    color:white;
-    position:relative;
+button:hover{
+transform:translateY(-4px);
+box-shadow:0 10px 20px rgba(0,0,0,.15);
 }
 
 .start{
-    background:#F39EB6;
-    color:white;
-    font-weight:bold;
+background:#6C63FF;
+color:white;
 }
+
+#yes{
+background:#ff3f81;
+color:white;
+}
+
+#no{
+background:#222;
+color:white;
+}
+
+/* Cursor */
+
+.cursor{
+width:6px;
+height:18px;
+background:black;
+display:inline-block;
+animation:blink 1s infinite;
+}
+
+@keyframes blink{
+50%{opacity:0;}
+}
+
+.success{
+font-size:22px;
+color:#ff3f81;
+font-weight:bold;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<div class="card" id="screen">
-    <h2>Hi Fatima 👋</h2>
-    <p>
-        I know we had our time before,<br>
-        but I couldn’t stop thinking…<br>
-        so I made this just for you 🙂
-    </p>
-    <button class="start" onclick="start()">Open ❤️</button>
+<div class="hearts"></div>
+
+<div class="card">
+
+<div id="startScreen" class="screen">
+<h2>Hi Fatima ❤️</h2>
+<p>A little something from me to you, with all my heart.</p>
+<button id="openBtn" class="start">Open</button>
+</div>
+
+<div id="typingScreen" class="screen">
+<h2 id="typingText"></h2>
+<span class="cursor"></span>
+</div>
+
+<div id="questionScreen" class="screen">
+<h2>Fatima ❤️</h2>
+<p id="questionText">
+I miss what we had ❤️<br>
+Can we give it another chance?
+</p>
+
+<div class="btn-group">
+<button id="yes">Yes, let’s try 💞</button>
+<button id="no">Not now 😔</button>
+</div>
+
+</div>
+
 </div>
 
 <script>
-let noCount = 0;
 
-// START SCREEN → TYPING EFFECT
-function start(){
-    document.getElementById("screen").innerHTML = `
-        <h2 id="typing"></h2>
-    `;
-    let text = "I’ve been thinking… maybe we can try again?";
-    let i = 0;
-    let typing = setInterval(()=>{
-        document.getElementById("typing").innerHTML += text[i];
-        i++;
-        if(i >= text.length){
-            clearInterval(typing);
-            setTimeout(showQuestion, 900);
-        }
-    },50);
+const start=document.getElementById("startScreen");
+const typing=document.getElementById("typingScreen");
+const question=document.getElementById("questionScreen");
+const openBtn=document.getElementById("openBtn");
+const yes=document.getElementById("yes");
+const no=document.getElementById("no");
+
+start.style.display="flex";
+
+/* Intro */
+gsap.from(start,{opacity:0,scale:.9,duration:1});
+
+/* Open */
+openBtn.onclick=()=>{
+gsap.to(start,{
+opacity:0,
+duration:.6,
+onComplete:()=>{
+start.style.display="none";
+typing.style.display="flex";
+typingEffect();
+}
+});
+};
+
+function typingEffect(){
+let text="I still remember the way we laughed together… maybe it’s time our story had another chapter ❤️";
+let i=0;
+let el=document.getElementById("typingText");
+
+let timer=setInterval(()=>{
+if(i<text.length){
+el.textContent+=text.charAt(i);
+i++;
+}else{
+clearInterval(timer);
+setTimeout(showQuestion,1200);
+}
+},30);
 }
 
-// MAIN QUESTION SCREEN
 function showQuestion(){
-    document.getElementById("screen").innerHTML = `
-        <h2>Fatima ❤️</h2>
-        <p id="text">
-            We had something good before,<br>
-            and I’d really like to make it better this time.<br>
-            Would you give us another chance?
-        </p>
-        <button id="yes" onclick="yesClick()">Yes 💖</button>
-        <button id="no">No 🙃</button>
-    `;
-    document.getElementById("no").addEventListener("click", noClick);
+typing.style.display="none";
+question.style.display="flex";
+
+gsap.timeline()
+.from("#questionScreen h2",{opacity:0,y:30,duration:.6})
+.from("#questionScreen p",{opacity:0,y:30},"-=.3")
+.from(".btn-group",{opacity:0,y:30},"-=.2");
 }
 
-// YES CLICK
-function yesClick(){
-    document.getElementById("screen").innerHTML = `
-        <h2>You chose YES ❤️</h2>
-        <p>
-            I’ve been hoping for this 🙂<br><br>
-            This time, no rushing, no drama,<br>
-            just us… and better memories together.
-        </p>
-    `;
+/* YES */
+yes.onclick=()=>{
+confetti({particleCount:250,spread:120});
+question.innerHTML='<div class="success">You just made my day, but really… it’s you who makes my heart race, my world shine, and every ordinary moment feel extraordinary. I don’t think I’ve ever smiled this much just thinking about someone. ❤️</div>';
+};
+
+/* NO */
+let count = 0;
+no.onclick = () => {
+    count++;
+    let t = document.getElementById("questionText");
+
+    if(count == 1) t.innerHTML = "Are you sure you want to say no? 💖";
+    else if(count == 2) t.innerHTML = "Think again… I can’t imagine a day without you 🙂";
+    else if(count == 3) t.innerHTML = "Please say yes… I promise to make you the happiest person alive ❤️";
+    else {
+        t.innerHTML = "I knew you couldn’t resist me ❤️";
+        // Remove only the NO button
+        no.remove();
+    }
+};
+
+/* Floating hearts */
+
+function createHeart(){
+const heart=document.createElement("div");
+heart.classList.add("heart");
+heart.innerHTML="❤";
+heart.style.left=Math.random()*100+"vw";
+heart.style.fontSize=(14+Math.random()*20)+"px";
+heart.style.animationDuration=(5+Math.random()*5)+"s";
+document.querySelector(".hearts").appendChild(heart);
+setTimeout(()=>{heart.remove();},10000);
 }
 
-// NO CLICK (button disappears after 5 clicks)
-function noClick(){
-    const text = document.getElementById("text");
-    const noBtn = document.getElementById("no");
-    noCount++;
+setInterval(createHeart,600);
 
-    if(noCount == 1){
-        text.innerHTML = "Are you sure? 😅";
-    }
-    else if(noCount == 2){
-        text.innerHTML = "Maybe think again? 🙂";
-    }
-    else if(noCount == 3){
-        text.innerHTML = "Hmm… I see some hesitation 😌";
-    }
-    else if(noCount == 4){
-        text.innerHTML = "Last chance 👀";
-    }
-    else{
-        text.innerHTML = "Okay… I’ll stop asking for now 😄";
-        noBtn.remove(); // NO button disappear
-    }
-}
 </script>
+
 </body>
 </html>
